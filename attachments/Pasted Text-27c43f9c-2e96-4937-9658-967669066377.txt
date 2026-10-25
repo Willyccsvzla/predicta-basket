@@ -1,0 +1,1252 @@
+PROMPT MAESTRO — CONSTRUIR APLICACIÓN PREDICTA NBA
+
+ROL
+
+Actúa como arquitecto de software, ingeniero de datos y auditor cuantitativo.
+
+Debes convertir el estado actual de PREDICTA NBA en una aplicación operativa real.
+
+IMPORTANTE:
+NO debes rediseñar el modelo matemático.
+NO debes crear una nueva versión matemática.
+NO debes sustituir el motor histórico por una fórmula simplificada.
+NO debes inventar parámetros.
+NO debes recalcular ni modificar el histórico 2025-26.
+NO debes generar predicciones reales 2026-27 durante la construcción.
+
+La aplicación debe ser un ORQUESTADOR OPERATIVO alrededor del motor PREDICTA NBA v1.1 ya validado.
+
+==================================================
+1. FUENTE DE VERDAD
+==================================================
+
+Los builders existentes son la fuente de verdad matemática:
+
+- build_predicta.py
+- build_v11.py
+- predicta_nba_engine
+
+El motor histórico v1.1 debe mantenerse exactamente como está.
+
+Resultados históricos que deben permanecer intactos:
+
+2025-26:
+- 1.230 partidos
+- Accuracy: 68.37%
+- Brier: 0.2074
+- Log Loss: 0.6030
+- MAE puntos: 9.63
+- MAE margen: 11.40
+- MAE total: 15.42
+
+No recalcular.
+No modificar.
+No sustituir.
+
+Si alguna implementación nueva produce resultados diferentes, DETENTE y reporta:
+
+"NO MODIFICADO — discrepancia con el motor v1.1. Requiere revisión."
+
+==================================================
+2. OBJETIVO DE LA APLICACIÓN
+==================================================
+
+Construir:
+
+PREDICTA NBA
+
+Una aplicación operativa que permita:
+
+CALENDARIO
+↓
+PARTIDOS DEL DÍA
+↓
+ACTUALIZACIÓN DE INFORMACIÓN
+↓
+SNAPSHOT PREGAME
+↓
+LOOK-AHEAD CHECK
+↓
+MOTOR PREDICTA v1.1
+↓
+PREDICCIÓN
+↓
+FREEZE
+↓
+PARTIDO
+↓
+RESULTADO
+↓
+AUDITORÍA
+↓
+UPDATE DEL ESTADO
+↓
+SIGUIENTE PARTIDO
+
+La aplicación debe poder operar DÍA POR DÍA, pero el procesamiento debe ser SIEMPRE PARTIDO POR PARTIDO.
+
+==================================================
+3. CONCEPTO FUNDAMENTAL
+==================================================
+
+El día es una unidad OPERATIVA.
+
+El partido es la unidad PREDICTIVA.
+
+Ejemplo:
+
+Si el 25 de octubre existen 10 partidos:
+
+DÍA 25/10
+- Partido 1
+- Partido 2
+- Partido 3
+...
+- Partido 10
+
+La aplicación puede mostrar los 10 partidos juntos.
+
+Pero cada partido debe tener:
+
+- su propio ID
+- su propio estado
+- su propio snapshot
+- su propio cutoff
+- su propia predicción
+- su propio freeze
+- su propio resultado
+- su propio update
+- su propio audit log
+
+NUNCA tratar los 10 partidos como una única predicción.
+
+==================================================
+4. CALENDARIO
+==================================================
+
+Utilizar exclusivamente el calendario oficial 2026-27 ya incorporado.
+
+Actualmente:
+
+- temporada regular
+- sin preseason
+- 1.200 partidos definidos
+- 30 partidos pendientes de definición oficial por NBA Cup
+- total final esperado: 1.230
+
+NO inventar los 30 partidos pendientes.
+
+Mantener:
+
+PARTIAL_OFFICIAL
+
+hasta que esos partidos sean oficialmente definidos.
+
+Cuando aparezca información oficial nueva:
+
+- actualizar solamente los partidos afectados
+- registrar cambio
+- no alterar partidos anteriores
+- no generar predicciones de partidos aún no definidos
+
+==================================================
+5. OPERACIÓN DIARIA
+==================================================
+
+La aplicación debe tener una vista:
+
+"HOY"
+
+Debe mostrar:
+
+- fecha
+- cantidad de partidos
+- partidos programados
+- partidos con datos actualizados
+- predicciones pendientes
+- predicciones generadas
+- predicciones congeladas
+- partidos en curso
+- partidos finalizados
+- partidos actualizados
+- partidos auditados
+
+Ejemplo:
+
+HOY — 25 OCTUBRE
+
+10 partidos
+
+PROGRAMADOS: 10
+DATOS ACTUALIZADOS: 8
+PREDICCIÓN PENDIENTE: 2
+PREDICCIÓN CONGELADA: 5
+FINALIZADOS: 3
+ACTUALIZADOS: 3
+AUDITADOS: 3
+
+Estos números son solamente un ejemplo de interfaz.
+NO introducirlos como datos reales.
+
+==================================================
+6. EXPEDIENTE INDIVIDUAL DE PARTIDO
+==================================================
+
+Cada partido debe tener un expediente independiente.
+
+Estructura mínima:
+
+GAME_ID
+DATE
+TIME
+TIMEZONE
+AWAY
+HOME
+ARENA
+NEUTRAL
+STATUS
+
+INFORMACIÓN PREGAME
+
+- lesiones
+- disponibilidad
+- questionable
+- doubtful
+- probable
+- out
+- descansos
+- cambios de jugador
+- información relevante disponible
+
+ESTADÍSTICAS
+
+- rating
+- form
+- pace
+- OffRtg
+- DefRtg
+- Four Factors
+- matchup
+- rest
+- travel
+- estado previo de cada equipo
+
+MERCADO
+
+Registrar si existe:
+
+- moneyline
+- spread
+- total
+- movimiento de línea
+
+IMPORTANTE:
+
+El mercado NO debe modificar el motor PREDICTA v1.1 salvo que exista una regla matemática explícitamente validada.
+
+Por ahora el mercado es INFORMACIÓN / AUDITORÍA.
+
+==================================================
+7. SNAPSHOT PREGAME
+==================================================
+
+Implementar:
+
+buildPregameSnapshot(gameId, cutoff)
+
+El snapshot debe ser INMUTABLE.
+
+Debe contener exclusivamente información disponible hasta:
+
+cutoff
+
+Debe registrar:
+
+- gameId
+- timestamp
+- cutoff
+- ratings previos
+- form previa
+- eficiencia previa
+- pace previo
+- Four Factors previos
+- rest
+- travel
+- disponibilidad disponible
+- estado previo de equipos
+- fuente de cada dato cuando exista
+- result_used = false
+
+Nunca incluir:
+
+- ganador
+- puntos finales
+- estadísticas del partido
+- información posterior al cutoff
+
+==================================================
+8. LOOK-AHEAD BARRIER
+==================================================
+
+Implementar:
+
+lookAheadCheck(gameId, snapshot)
+
+Debe rechazar cualquier snapshot que contenga información posterior al cutoff.
+
+Prueba obligatoria:
+
+Snapshot limpio:
+PASS
+
+Snapshot al que se le agrega artificialmente:
+
+winner = HOME
+
+Debe devolver:
+
+REJECTED_LOOKAHEAD
+
+Hacer la misma prueba con:
+
+- puntos
+- resultado
+- estadísticas posteriores
+- ganador
+- información posterior al cutoff
+
+No permitir contaminación.
+
+==================================================
+9. MOTOR PREDICTA
+==================================================
+
+El motor debe llamar a:
+
+predicta_nba_engine
+
+que debe importar/utilizar los builders originales.
+
+NO copiar una fórmula nueva dentro de la interfaz.
+
+NO crear:
+
+- nuevo Elo
+- nueva regresión
+- nuevo logistic
+- nuevo rating
+- nuevo cálculo de total
+- nueva fórmula de margen
+
+La matemática válida es la de los builders.
+
+Parámetros históricos recuperados:
+
+- rating scale: 28
+- localía: +3.0 puntos
+- neutral: 0
+- K: 18
+- movement cap: ±32
+- probability logistic scale: 11.5
+- league mean inicial: 113.5
+- form basada en información previa
+- 60% rating
+- 30% eficiencia
+- 10% form
+- eficiencia 65% propia + 35% defensa rival
+- Four Factors 0.20 con cap ±3.5 cuando corresponde
+- fallback v1.1 cuando no existe muestra suficiente
+- probabilidad logística sobre margen no redondeado, escala 11.5
+- actualización postpartido según builder original
+
+Estos parámetros deben ser tratados como parámetros protegidos.
+
+Si existe cualquier discrepancia con los builders:
+
+NO MODIFICAR.
+
+Reportar la discrepancia.
+
+==================================================
+10. PREDICCIÓN
+==================================================
+
+Implementar:
+
+runPrediction(gameId, cutoff)
+
+Debe:
+
+1. obtener snapshot
+2. ejecutar lookAheadCheck
+3. ejecutar motor v1.1
+4. producir:
+
+- projected_home
+- projected_away
+- projected_total
+- projected_margin
+- p_home
+- p_away
+- pick
+- confidence
+- uncertainty
+- model_state
+- timestamp
+- cutoff
+
+La predicción debe quedar asociada al snapshot exacto utilizado.
+
+==================================================
+11. FREEZE
+==================================================
+
+Implementar:
+
+freezePrediction(gameId)
+
+Una predicción congelada debe ser INMUTABLE.
+
+Una vez congelada:
+
+NO puede cambiar:
+
+- margen
+- total
+- probabilidades
+- pick
+- confidence
+- snapshot
+- cutoff
+
+Si se vuelve a ejecutar:
+
+RECHAZAR.
+
+Debe existir prueba:
+
+primera congelación = PASS
+
+segunda congelación = REJECTED_ALREADY_FROZEN
+
+==================================================
+12. INFORMACIÓN CAMBIANTE
+==================================================
+
+Antes del freeze:
+
+La información puede actualizarse.
+
+Ejemplo:
+
+09:00
+Jugador probable
+
+12:00
+Jugador questionable
+
+16:00
+Jugador out
+
+La aplicación puede actualizar el snapshot mientras la predicción no esté congelada.
+
+Pero cada nueva versión del snapshot debe quedar registrada.
+
+Una vez congelada:
+
+la predicción queda protegida.
+
+==================================================
+13. DISPONIBILIDAD DE JUGADORES
+==================================================
+
+MUY IMPORTANTE.
+
+Actualmente la disponibilidad histórica no permite validar:
+
+- on/off pregame
+- impacto real
+- expected minutes
+- returning impact
+
+Por lo tanto:
+
+NO inventar.
+
+Estados correctos:
+
+NOT VALIDATED
+NOT AVAILABLE
+INFORMATION ONLY
+
+No utilizar esos datos dentro del marcador si no existe una regla validada.
+
+Questionable NO significa Out.
+
+No imputar minutos.
+
+No crear penalizaciones arbitrarias.
+
+La futura integración de jugadores debe ser una capa independiente.
+
+==================================================
+14. REST Y TRAVEL
+==================================================
+
+Mantener las reglas documentadas:
+
+REST:
+- mínimo n≥25 para validación
+- cap ±1.5
+
+TRAVEL:
+- cap ±0.6
+
+Pero si el residual o distancia exacta no está recuperado:
+
+NO INVENTAR.
+
+Mostrar:
+
+NOT VALIDATED
+
+y mantenerlo fuera del cálculo.
+
+==================================================
+15. ESTADOS DEL PARTIDO
+==================================================
+
+Implementar máquina de estados:
+
+PROGRAMADO
+
+↓
+
+DATOS_ACTUALIZADOS
+
+↓
+
+PREDICCIÓN_PENDIENTE
+
+↓
+
+PREDICCIÓN_GENERADA
+
+↓
+
+PREDICCIÓN_CONGELADA
+
+↓
+
+EN_ESPERA_RESULTADO
+
+↓
+
+FINALIZADO
+
+↓
+
+ACTUALIZADO
+
+↓
+
+AUDITADO
+
+También:
+
+ERROR
+
+Si existe inconsistencia crítica.
+
+No saltar estados sin registrar el motivo.
+
+==================================================
+16. ACTUALIZACIÓN POSTPARTIDO
+==================================================
+
+Implementar:
+
+checkCompletedGames()
+
+y
+
+updateAfterGame(gameId, result)
+
+Después del partido:
+
+1. obtener resultado oficial
+2. validar resultado
+3. comparar contra predicción congelada
+4. calcular:
+
+- error puntos
+- error margen
+- error total
+- acierto/fallo
+- Brier
+- Log Loss
+- calibración
+
+5. actualizar estado de equipos según builders
+6. actualizar rating
+7. actualizar form
+8. actualizar eficiencia
+9. actualizar pace cuando corresponda
+10. actualizar Four Factors cuando corresponda
+11. guardar nuevo estado
+
+IMPORTANTE:
+
+La predicción histórica congelada NO cambia.
+
+Se actualiza solamente el estado posterior.
+
+==================================================
+17. WALK-FORWARD
+==================================================
+
+El sistema debe respetar:
+
+PARTIDO T
+
+Snapshot T
+→ Predicción T
+→ Freeze T
+→ Resultado T
+→ Update T
+
+Después:
+
+PARTIDO T+1
+
+Utiliza exclusivamente el estado producido después de T.
+
+Nunca:
+
+resultado T+1 → predicción T
+
+Nunca:
+
+información posterior → predicción anterior
+
+==================================================
+18. SCHEDULER
+==================================================
+
+Construir scheduler state-aware.
+
+No ejecutar ciegamente.
+
+Configuración preparada:
+
+- revisión general cada 3 horas
+- cada 60 minutos durante las últimas 6 horas
+- revisión crítica durante los últimos 90 minutos
+- revisión postpartido cada 30-60 minutos hasta obtener resultado oficial
+
+Pero el scheduler debe decidir qué hacer según el estado del partido.
+
+Ejemplo:
+
+Si está PROGRAMADO:
+→ actualizar información
+
+Si está PREDICCIÓN_PENDIENTE:
+→ construir snapshot y preparar predicción
+
+Si está PREDICCIÓN_GENERADA:
+→ validar/freeze según reglas
+
+Si está PREDICCIÓN_CONGELADA:
+→ no recalcular
+
+Si está EN_ESPERA_RESULTADO:
+→ buscar resultado
+
+Si está FINALIZADO:
+→ ejecutar update
+
+Si está ACTUALIZADO:
+→ auditoría
+
+Si está AUDITADO:
+→ no repetir innecesariamente
+
+==================================================
+19. MUY IMPORTANTE: NO REGENERAR
+==================================================
+
+El scheduler NO debe:
+
+- recalcular 2025-26
+- modificar builders
+- modificar parámetros
+- regenerar predicciones históricas
+- sobrescribir freezes
+- crear predicciones duplicadas
+- generar predicciones de partidos inexistentes
+
+Debe trabajar incrementalmente.
+
+==================================================
+20. PERSISTENCIA
+==================================================
+
+Crear almacenamiento persistente para:
+
+- calendario
+- estados
+- snapshots
+- predicciones
+- freezes
+- resultados
+- updates
+- auditorías
+- timestamps
+- fuentes
+- errores
+- logs del scheduler
+
+Si la aplicación se reinicia:
+
+debe recuperar exactamente el último estado.
+
+No comenzar desde cero.
+
+No duplicar predicciones.
+
+==================================================
+21. DASHBOARD
+==================================================
+
+La aplicación debe tener como mínimo:
+
+PORTADA
+
+HOY
+
+CALENDARIO
+
+PREDICCIONES
+
+PARTIDOS
+
+NÚMEROS
+
+EQUIPOS
+
+JUGADORES
+
+AUDITORÍA
+
+SISTEMA
+
+SCHEDULER
+
+==================================================
+22. PORTADA
+==================================================
+
+Mostrar:
+
+PREDICTA NBA
+
+Estado del sistema:
+
+MOTOR v1.1 VALIDADO
+
+Histórico:
+
+1.230 partidos
+
+Accuracy 68.37%
+Brier 0.2074
+Log Loss 0.6030
+MAE puntos 9.63
+MAE margen 11.40
+MAE total 15.42
+
+Estado 2026-27:
+
+0 predicciones
+0 congeladas
+0 finalizados
+
+Mientras producción esté cerrada:
+
+PRODUCCIÓN CERRADA
+
+==================================================
+23. PÁGINA "HOY"
+==================================================
+
+Debe ser la página operacional principal.
+
+Mostrar solamente los partidos correspondientes al día seleccionado.
+
+Cada partido debe mostrar:
+
+- hora
+- visitante
+- local
+- arena
+- estado
+- información disponible
+- estado de predicción
+- predicción si existe
+- freeze si existe
+- resultado si existe
+
+Debe poder abrirse el expediente individual.
+
+==================================================
+24. PÁGINA DE PARTIDO
+==================================================
+
+Al seleccionar un partido:
+
+Mostrar expediente completo.
+
+SECCIÓN:
+
+Identificación
+
+Información
+
+Disponibilidad
+
+Estadísticas
+
+Matchup
+
+Game state
+
+Snapshot
+
+Predicción
+
+Freeze
+
+Resultado
+
+Error
+
+Update
+
+Audit log
+
+No mezclar información de otros partidos.
+
+==================================================
+25. AUTOMATIZACIÓN POR DÍA
+==================================================
+
+La aplicación debe permitir seleccionar:
+
+HOY
+
+MAÑANA
+
+FECHA
+
+SEMANA
+
+TEMPORADA
+
+Pero la ejecución debe continuar siendo partido por partido.
+
+Ejemplo:
+
+"Procesar HOY"
+
+NO significa:
+
+"crear una única predicción diaria".
+
+Significa:
+
+"recorrer los partidos del día y ejecutar el flujo individual de cada partido según su estado."
+
+==================================================
+26. PREDICCIONES DE UN DÍA
+==================================================
+
+Si hay 12 partidos:
+
+El sistema debe poder mostrar:
+
+12 partidos programados
+
+pero solamente generar predicción para aquellos que:
+
+- estén correctamente definidos
+- tengan snapshot válido
+- pasen look-ahead
+- tengan datos mínimos
+- estén dentro de la ventana operativa
+- no tengan freeze previo
+
+No generar predicciones anticipadas de todo el día solamente porque están en el calendario.
+
+==================================================
+27. CONTROL DE DUPLICADOS
+==================================================
+
+Cada partido debe tener ID único.
+
+Ejemplo:
+
+NBA2027-0001
+
+No permitir:
+
+dos predicciones activas
+dos freezes
+dos updates finales
+
+para el mismo gameId.
+
+==================================================
+28. AUDITORÍA
+==================================================
+
+Cada acción importante debe registrar:
+
+timestamp
+gameId
+acción
+estado anterior
+estado nuevo
+fuente
+resultado
+error si existe
+
+Ejemplo:
+
+10:00
+NBA2027-0001
+SNAPSHOT_CREATED
+PROGRAMADO → DATOS_ACTUALIZADOS
+
+12:00
+NBA2027-0001
+PREDICTION_GENERATED
+
+16:30
+NBA2027-0001
+PREDICTION_FROZEN
+
+22:30
+NBA2027-0001
+RESULT_RECEIVED
+
+22:35
+NBA2027-0001
+STATE_UPDATED
+
+==================================================
+29. SANDBOX
+==================================================
+
+Antes de habilitar producción:
+
+crear:
+
+SANDBOX-1
+
+Ejecutar:
+
+snapshot
+→ lookahead
+→ prediction
+→ freeze
+→ result
+→ update
+→ audit
+
+Probar:
+
+- lookahead positivo
+- lookahead rechazado
+- freeze duplicado rechazado
+- update
+- persistencia
+- reinicio
+- recuperación
+- eliminación completa del sandbox
+
+Al finalizar:
+
+SANDBOX-1 debe desaparecer.
+
+No debe contaminar:
+
+- calendario
+- histórico
+- estadísticas
+- ratings
+- predicciones reales
+
+==================================================
+30. PRODUCCIÓN
+==================================================
+
+PRODUCCIÓN DEBE COMENZAR APAGADA.
+
+Configurar:
+
+scheduler.enabled = false
+
+real_predictions_enabled = false
+
+No generar ninguna predicción 2026-27 durante construcción.
+
+Estado esperado:
+
+2026-27
+predictions = 0
+frozen = 0
+finalized = 0
+updated = 0
+
+Después de completar las pruebas, dejar preparado:
+
+ACTIVACIÓN MANUAL
+
+No activar automáticamente.
+
+==================================================
+31. PROTECCIÓN DEL MOTOR
+==================================================
+
+Crear una frontera clara:
+
+PREDICTA ENGINE
+     ↓
+ORCHESTRATOR
+     ↓
+STATE STORE
+     ↓
+DASHBOARD
+
+El orquestador puede cambiar estados y ejecutar funciones.
+
+Pero NO puede modificar la matemática del engine.
+
+Los builders son SOURCE OF TRUTH.
+
+==================================================
+32. COPIA LOCAL DEL MOTOR
+==================================================
+
+Si por razones del navegador necesitas una copia local del motor:
+
+puede existir únicamente como fallback técnico del sandbox.
+
+Debe estar claramente marcada:
+
+LOCAL FALLBACK — NO SOURCE OF TRUTH
+
+No debe sustituir:
+
+predicta_nba_engine
+build_predicta.py
+build_v11.py
+
+No ocultar esta condición.
+
+==================================================
+33. VALIDACIONES FINALES
+==================================================
+
+Antes de entregar la aplicación ejecutar:
+
+TEST 1
+Histórico 1230/1230 intacto.
+
+TEST 2
+Métricas históricas intactas.
+
+TEST 3
+Builders sin modificación.
+
+TEST 4
+Motor operacional utiliza builders.
+
+TEST 5
+Snapshot sin resultado.
+
+TEST 6
+Look-ahead rechaza información futura.
+
+TEST 7
+Prediction funciona.
+
+TEST 8
+Freeze funciona.
+
+TEST 9
+Segundo freeze rechazado.
+
+TEST 10
+Update modifica estado posterior pero NO predicción congelada.
+
+TEST 11
+Persistencia funciona.
+
+TEST 12
+Reinicio funciona.
+
+TEST 13
+Sandbox se elimina.
+
+TEST 14
+2026-27 sigue con:
+
+0 predictions
+0 frozen
+0 finals
+0 updates
+
+TEST 15
+Calendario:
+
+1200 definidos
+30 pendientes
+sin inventar
+
+TEST 16
+Procesamiento diario funciona.
+
+TEST 17
+Procesamiento individual por partido funciona.
+
+TEST 18
+Un cambio de información en Partido A NO modifica Partido B.
+
+TEST 19
+Una predicción congelada NO cambia después de actualizar otro partido.
+
+TEST 20
+No existen duplicados.
+
+==================================================
+34. NO HACER
+==================================================
+
+NO:
+
+- inventar fórmulas
+- inventar datos
+- inventar partidos
+- inventar lesiones
+- inventar minutos
+- inventar impacto de jugadores
+- crear nuevo Elo
+- modificar K
+- modificar localía
+- modificar escala
+- cambiar probabilidades
+- recalcular histórico
+- crear versiones matemáticas nuevas
+- generar predicciones masivas 2026-27
+- activar scheduler
+- sobrescribir freezes
+- utilizar resultados futuros
+- mezclar partidos
+- utilizar información posterior al cutoff
+
+==================================================
+35. SI ENCUENTRAS UNA DISCREPANCIA
+==================================================
+
+Si encuentras una discrepancia entre:
+
+HTML
+builders
+engine
+histórico
+orquestador
+
+NO la corrijas inventando.
+
+Detente y reporta:
+
+"NO MODIFICADO — requiere decisión sobre la matemática del motor."
+
+Explica:
+
+- qué discrepancia encontraste
+- dónde está
+- cuál es el comportamiento actual
+- qué parte está documentada
+- qué parte no está documentada
+
+==================================================
+36. ENTREGA FINAL
+==================================================
+
+Entrega una aplicación funcional PREDICTA NBA.
+
+Debe quedar:
+
+MOTOR v1.1:
+INTACTO
+
+HISTÓRICO:
+INTACTO
+
+CALENDARIO:
+INTACTO
+
+ORQUESTADOR:
+OPERATIVO
+
+SCHEDULER:
+PREPARADO
+
+PRODUCCIÓN:
+CERRADA
+
+SANDBOX:
+EJECUTADO Y ELIMINADO
+
+2026-27:
+0 predicciones reales
+
+La aplicación debe quedar preparada para que, cuando se autorice producción, funcione automáticamente de esta manera:
+
+DÍA
+→ partidos del día
+→ cada partido individualmente
+→ actualización progresiva
+→ snapshot
+→ look-ahead
+→ predicción
+→ freeze
+→ resultado
+→ update
+→ auditoría
+→ siguiente partido.
+
+NO QUIERO UNA APLICACIÓN QUE SIMPLEMENTE MUESTRE PREDICCIONES.
+
+QUIERO EL SISTEMA OPERATIVO DE PREDICTA NBA.
+
+La prioridad absoluta es:
+
+INTEGRIDAD DEL MOTOR
+>
+NO LOOK-AHEAD
+>
+INTEGRIDAD DEL ESTADO
+>
+TRAZABILIDAD
+>
+PERSISTENCIA
+>
+AUTOMATIZACIÓN
+>
+INTERFAZ
+
+Si alguna característica de la aplicación entra en conflicto con el motor v1.1, EL MOTOR GANA.

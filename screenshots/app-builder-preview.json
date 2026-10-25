@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8080/",
+  "viewports": {
+    "desktop": {
+      "width": 1280,
+      "height": 800,
+      "status": 200,
+      "title": "PREDICTA NBA",
+      "hasCanvas": false,
+      "bodyTextLen": 994,
+      "bodyTextHash": "8b8e0abd249d6cdfa7951d7b5a81b4cfa2f2aac348af11d1ce4614853ace0347",
+      "bodyTextPrefix": "PREDICTA NBA PREDICTA NBA PREDICTA NBA Orquestador operativo · m",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "status": 200,
+      "title": "PREDICTA NBA",
+      "hasCanvas": false,
+      "bodyTextLen": 1096,
+      "bodyTextHash": "052864d4854e9adeca617d10ec79dff634c73c5b01b23c389c28bcc26fc00a88",
+      "bodyTextPrefix": "PREDICTA NBA PREDICTA NBA PREDICTA NBA Orquestador operativo · m",
+      "horizontalOverflow": false,
+      "consoleErrors": [],
+      "pageErrors": [],
+      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+    }
+  },
+  "brandWarnings": [],
+  "authWarnings": [],
+  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+}

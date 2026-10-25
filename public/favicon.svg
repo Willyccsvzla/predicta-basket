@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="PREDICTA">
+  <rect width="32" height="32" rx="6" fill="#0b0c0a"/>
+  <rect x="1.25" y="1.25" width="29.5" height="29.5" rx="5" fill="none" stroke="#141612" stroke-width="1"/>
+  <ellipse cx="16" cy="16" rx="8.6" ry="10.6" fill="none" stroke="#d6a15a" stroke-width="1.7"/>
+  <path fill="#e8eadf" d="M12.4 8.6h4.35c2.55 0 4.15 1.42 4.15 3.5 0 1.55-.85 2.72-2.2 3.22l2.55 7.08h-2.85l-2.35-6.7H14.7v6.7h-2.3V8.6zm2.3 2.05v3.35h1.95c1.15 0 1.85-.52 1.85-1.68 0-1.14-.7-1.67-1.85-1.67H14.7z"/>
+</svg>
